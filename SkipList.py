@@ -2,10 +2,9 @@ import random
 
 from SkipNode import SkipNode
 
-
 class SkipList:
     def __init__(self, max_height):
-        self.header = SkipNode(max_height, -int("inf"), None)
+        self.header = SkipNode(max_height, float("-inf"), None)
         self.max_height = max_height
         self.current_height = 1
 
@@ -36,34 +35,6 @@ class SkipList:
         the node's value will be updated.
         """
 
-        """
-        pseudo code
-        ============
-
-        update = list of length current_height
-        current_node = header
-
-        for i from current_height to 0
-            while current_node's ith forward reference's key < insert_key: (and not None)
-                current_node = current_node's ith forward reference
-            update[i] = current_node
-        current_node = current_node's 0th forward reference
-
-        if current_node.key == key:
-            current_node.value = insert_value
-        
-        else:
-            new_height = random height
-            if new_height > lists current height:
-                for i from current_height + 1 to new_height (inclusive):
-                    update[i] = header
-                current_height = new_height
-            new_node = Node(.....)
-            for i from 0 to height (exclusive):
-                new_node.forward[i] = update[i].forward[i]
-                update[i].forward[i] = new_node
-        """
-
         update = [None] * self.max_height
         current_node = self.header
 
@@ -71,6 +42,25 @@ class SkipList:
             while current_node.forward[i] is not None and current_node.forward[i].key < insert_key:
                 current_node = current_node.forward[i]
             update[i] = current_node
+        current_node = current_node.forward[0]
+
+        # If a node with the given key already exists then update the node's value. 
+        if current_node is not None and current_node.key == insert_key:
+            current_node.value = insert_value
+        
+        else:
+            new_height = get_random_height(self.max_height)
+            
+            if new_height > self.current_height:
+                for i in range(self.current_height, new_height):
+                    update[i] = self.header
+                self.current_height = new_height
+            
+            new_node = SkipNode(new_height, insert_key, insert_value)
+            for i in range(0, new_height):
+                new_node.forward[i] = update[i].forward[i]
+                update[i].forward[i] = new_node
+
         
 
 def get_random_height(max_height) -> int:
@@ -84,5 +74,54 @@ def get_random_height(max_height) -> int:
         height += 1
     
     return height
+
+def print_skip_list(skip_list:SkipList):
+    """
+    node_lists = []
+    For each node:
+        create list of length current_height.
+        add key/value to as many elements as the height of the node.
+        add list to node_lists
+    Create header/NIL lists of length current_height
+    add to begining and end of node_list
+    for each row starting from current_height:
+        for i in len(node_lists):
+            if current node list has ith element:
+                add to string
+        print row
+
+
+    """
+    node_lists = []
+
+    header_list = ["HEAD -> "] * skip_list.current_height
+    node_lists.append(header_list)
+    
+    current_node = skip_list.header.forward[0]
+
+    while current_node is not None:
+        node_list = [None] * skip_list.current_height
+        for i in range(len(current_node.forward)):
+            node_list[i] = f"({current_node.key}, {current_node.value}) -> "
+        node_lists.append(node_list)
+
+        current_node = current_node.forward[0]
+    
+    nil_list = ["NIL"] * skip_list.current_height
+    node_lists.append(nil_list)
+
+    for i in reversed(range(skip_list.current_height)):
+        row = ""
+
+        for node_list in node_lists:
+            if node_list[i] is not None:
+                row += node_list[i]
+            else:
+                row += "    ->    "
+        print(row)
+
+    
+
+
 
 
