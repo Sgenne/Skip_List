@@ -20,7 +20,7 @@ class SkipList:
         for i in reversed(range(0, self.current_height)):
 
             # Move forward in the skip list in the current level.
-            while current_node.forward[i].key < search_key:
+            while current_node.forward[i] is not None and current_node.forward[i].key < search_key:
                 current_node = current_node.forward[i]
         current_node = current_node.forward[0]
         if current_node is not None and current_node.key == search_key:
@@ -60,6 +60,32 @@ class SkipList:
             for i in range(0, new_height):
                 new_node.forward[i] = update[i].forward[i]
                 update[i].forward[i] = new_node
+    
+    def delete(self, delete_key):
+        """
+        Deletes the node with the given key if such a node exists. 
+        If no such node exists then nothing will change.
+        """
+
+        update = [None] * self.current_height
+        current_node = self.header
+
+        for i in reversed(range(self.current_height)):
+            while current_node.forward[i] is not None and current_node.forward[i].key < delete_key:
+                current_node = current_node.forward[i]
+            update[i] = current_node
+
+        current_node = current_node.forward[0]
+
+        if current_node is not None and current_node.key == delete_key:
+            for i in range(0, self.current_height):
+                if update[i].forward[i] != current_node:
+                    break
+                update[i].forward[i] = current_node.forward[i]
+            
+            while self.current_height > 1 and self.header.forward[self.current_height - 1] is None:
+                self.current_height -= 1
+            
 
         
 
@@ -77,21 +103,9 @@ def get_random_height(max_height) -> int:
 
 def print_skip_list(skip_list:SkipList):
     """
-    node_lists = []
-    For each node:
-        create list of length current_height.
-        add key/value to as many elements as the height of the node.
-        add list to node_lists
-    Create header/NIL lists of length current_height
-    add to begining and end of node_list
-    for each row starting from current_height:
-        for i in len(node_lists):
-            if current node list has ith element:
-                add to string
-        print row
-
-
+    Prints a string representation of the given Skip List.
     """
+
     node_lists = []
 
     header_list = ["HEAD -> "] * skip_list.current_height
@@ -102,6 +116,7 @@ def print_skip_list(skip_list:SkipList):
     while current_node is not None:
         node_list = [None] * skip_list.current_height
         for i in range(len(current_node.forward)):
+            print("current_node: " + str(current_node))
             node_list[i] = f"({current_node.key}, {current_node.value}) -> "
         node_lists.append(node_list)
 
